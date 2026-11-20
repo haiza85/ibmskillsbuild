@@ -1,0 +1,839 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard KPI E-Learning — Politeknik Muadzam Shah</title>
+
+  <!-- Bootstrap 5 -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <!-- Bootstrap Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet" />
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+
+  <style>
+    :root {
+      --biru: #003366;
+      --biru-muda: #004d99;
+      --emas: #FFD700;
+      --hijau: #28a745;
+      --kuning: #ffc107;
+      --merah: #dc3545;
+      --bg: #f0f4f8;
+    }
+
+    body {
+      background: var(--bg);
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      font-size: 15px;
+      color: #1a1a2e;
+    }
+
+    /* ===== HEADER ===== */
+    #app-header {
+      background: linear-gradient(135deg, var(--biru) 0%, var(--biru-muda) 100%);
+      color: white;
+      padding: 16px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.3);
+    }
+
+    #app-header .logo-area {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    #app-header .logo-box {
+      width: 56px;
+      height: 56px;
+      background: var(--emas);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 26px;
+      font-weight: bold;
+      color: var(--biru);
+    }
+
+    #app-header h1 {
+      font-size: 1.3rem;
+      font-weight: 700;
+      margin: 0;
+      line-height: 1.3;
+    }
+
+    #app-header .subtitle {
+      font-size: 0.82rem;
+      opacity: 0.85;
+      margin-top: 2px;
+    }
+
+    #app-header .controls {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    #tahunSelect {
+      background: rgba(255,255,255,0.15);
+      color: white;
+      border: 1px solid rgba(255,255,255,0.4);
+      border-radius: 8px;
+      padding: 6px 12px;
+      font-size: 0.95rem;
+      cursor: pointer;
+    }
+
+    #tahunSelect option { color: #000; background: #fff; }
+
+    .btn-fullscreen {
+      background: rgba(255,255,255,0.15);
+      color: white;
+      border: 1px solid rgba(255,255,255,0.4);
+      border-radius: 8px;
+      padding: 6px 12px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .btn-fullscreen:hover { background: rgba(255,255,255,0.28); }
+
+    /* ===== TABS ===== */
+    #main-tabs {
+      background: var(--biru);
+      padding: 0 24px;
+      display: flex;
+      gap: 4px;
+      border-bottom: 3px solid var(--emas);
+    }
+
+    .tab-btn {
+      background: transparent;
+      color: rgba(255,255,255,0.7);
+      border: none;
+      padding: 12px 22px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      border-bottom: 3px solid transparent;
+      margin-bottom: -3px;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+
+    .tab-btn:hover { color: white; }
+
+    .tab-btn.aktif {
+      color: var(--emas);
+      border-bottom-color: var(--emas);
+    }
+
+    /* ===== MAIN CONTENT ===== */
+    #main-content {
+      padding: 24px;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    .tab-panel { display: none; }
+    .tab-panel.aktif { display: block; }
+
+    /* ===== KAD KPI RINGKASAN ===== */
+    .kad-kpi {
+      background: white;
+      border-radius: 12px;
+      padding: 18px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      border-top: 4px solid var(--biru);
+      height: 100%;
+    }
+
+    .kad-kpi .kpi-ikon {
+      font-size: 2rem;
+      margin-bottom: 6px;
+    }
+
+    .kad-kpi .kpi-nama {
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: #555;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 8px;
+    }
+
+    .kad-kpi .kpi-angka {
+      font-size: 1.6rem;
+      font-weight: 800;
+      color: var(--biru);
+      line-height: 1;
+    }
+
+    .kad-kpi .kpi-sasaran {
+      font-size: 0.8rem;
+      color: #888;
+      margin-bottom: 8px;
+    }
+
+    /* ===== PROGRESS BAR ===== */
+    .progress-wrap {
+      margin-bottom: 14px;
+    }
+
+    .progress-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.85rem;
+      margin-bottom: 4px;
+      font-weight: 600;
+    }
+
+    .progress {
+      height: 14px;
+      border-radius: 20px;
+      background: #e9ecef;
+    }
+
+    .progress-bar { border-radius: 20px; transition: width 0.8s ease; }
+
+    /* ===== BADGE STATUS ===== */
+    .badge-status {
+      font-size: 0.75rem;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-weight: 600;
+    }
+
+    .badge-capai { background: #d4edda; color: #155724; }
+    .badge-hampir { background: #fff3cd; color: #856404; }
+    .badge-perlu { background: #f8d7da; color: #721c24; }
+
+    /* ===== SECTION CARDS ===== */
+    .section-card {
+      background: white;
+      border-radius: 12px;
+      padding: 20px 22px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      margin-bottom: 24px;
+    }
+
+    .section-title {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--biru);
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border-bottom: 2px solid #e9ecef;
+      padding-bottom: 10px;
+    }
+
+    /* ===== JADUAL RANKING ===== */
+    .table-ranking { font-size: 0.88rem; }
+    .table-ranking th {
+      background: var(--biru);
+      color: white;
+      font-weight: 600;
+      white-space: nowrap;
+      padding: 10px 12px;
+    }
+
+    .table-ranking td { padding: 9px 12px; vertical-align: middle; }
+    .table-ranking tbody tr:hover { background: #f0f4f8; }
+
+    .ranking-no {
+      font-size: 1.1rem;
+      font-weight: 800;
+      color: var(--biru);
+    }
+
+    .ranking-1 { color: #c8a000; }
+    .ranking-2 { color: #888; }
+    .ranking-3 { color: #a0522d; }
+
+    /* ===== KAD JABATAN (TAB 2) ===== */
+    .kad-jabatan {
+      background: white;
+      border-radius: 14px;
+      padding: 20px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+      border: 2px solid transparent;
+      height: 100%;
+    }
+
+    .kad-jabatan:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 20px rgba(0,51,102,0.18);
+      border-color: var(--biru-muda);
+    }
+
+    .kad-jabatan .jab-kod {
+      font-size: 1.5rem;
+      font-weight: 800;
+      color: var(--biru);
+    }
+
+    .kad-jabatan .jab-nama {
+      font-size: 0.82rem;
+      color: #666;
+      margin-bottom: 10px;
+    }
+
+    .kad-jabatan .jab-pct {
+      font-size: 2rem;
+      font-weight: 800;
+      color: var(--biru);
+      line-height: 1;
+    }
+
+    /* ===== PANEL DETAIL JABATAN ===== */
+    #panel-detail {
+      display: none;
+      animation: fadeIn 0.3s ease;
+    }
+
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+    .detail-header {
+      background: linear-gradient(135deg, var(--biru), var(--biru-muda));
+      color: white;
+      border-radius: 12px;
+      padding: 20px 24px;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .detail-header h2 { margin: 0; font-size: 1.4rem; font-weight: 800; }
+    .detail-header .detail-pct { font-size: 2.2rem; font-weight: 800; color: var(--emas); }
+
+    /* ===== FOOTER ===== */
+    #app-footer {
+      background: var(--biru);
+      color: rgba(255,255,255,0.7);
+      text-align: center;
+      padding: 12px;
+      font-size: 0.8rem;
+      margin-top: 20px;
+    }
+
+    /* ===== CELL WARNA STATUS ===== */
+    .cell-capai { background: #d4edda !important; color: #155724; font-weight: 700; }
+    .cell-hampir { background: #fff3cd !important; color: #856404; font-weight: 700; }
+    .cell-perlu { background: #f8d7da !important; color: #721c24; font-weight: 700; }
+  </style>
+</head>
+<body>
+
+<!-- ===== HEADER ===== -->
+<header id="app-header">
+  <div class="logo-area">
+    <div class="logo-box">PMS</div>
+    <div>
+      <h1>Dashboard KPI E-Learning</h1>
+      <div class="subtitle">Politeknik Muadzam Shah &nbsp;|&nbsp; Pemantauan Pencapaian Jabatan</div>
+    </div>
+  </div>
+  <div class="controls">
+    <select id="tahunSelect" onchange="renderSemua(this.value)">
+      <option value="2024">Tahun 2024</option>
+      <option value="2025" selected>Tahun 2025</option>
+      <option value="2026">Tahun 2026</option>
+    </select>
+    <button class="btn-fullscreen" onclick="toggleFullscreen()">
+      <i class="bi bi-fullscreen"></i> Layar Penuh
+    </button>
+  </div>
+</header>
+
+<!-- ===== NAVIGASI TAB ===== -->
+<nav id="main-tabs">
+  <button class="tab-btn aktif" onclick="tukarTab('ringkasan')">
+    <i class="bi bi-bar-chart-fill"></i> Ringkasan Keseluruhan
+  </button>
+  <button class="tab-btn" onclick="tukarTab('detail')">
+    <i class="bi bi-building"></i> Detail Jabatan
+  </button>
+</nav>
+
+<!-- ===== KANDUNGAN UTAMA ===== -->
+<main id="main-content">
+
+  <!-- TAB 1: RINGKASAN -->
+  <div id="tab-ringkasan" class="tab-panel aktif">
+
+    <!-- 5 KAD KPI KESELURUHAN -->
+    <div class="row g-3 mb-4" id="kad-kpi-container"></div>
+
+    <!-- CARTA BAR PERBANDINGAN JABATAN -->
+    <div class="section-card">
+      <div class="section-title">
+        <i class="bi bi-bar-chart-line-fill"></i> Perbandingan Pencapaian KPI Setiap Jabatan (%)
+      </div>
+      <canvas id="chartBar" height="90"></canvas>
+    </div>
+
+    <!-- JADUAL RANKING -->
+    <div class="section-card">
+      <div class="section-title">
+        <i class="bi bi-trophy-fill"></i> Ranking Pencapaian Jabatan
+      </div>
+      <div class="table-responsive">
+        <table class="table table-bordered table-ranking" id="jadual-ranking">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Jabatan</th>
+              <th>🎬 Video PdP AI</th>
+              <th>📖 e-Book</th>
+              <th>🏅 Micro Credential</th>
+              <th>🥽 VR</th>
+              <th>🌐 Webinar</th>
+              <th>Purata (%)</th>
+            </tr>
+          </thead>
+          <tbody id="tbody-ranking"></tbody>
+        </table>
+      </div>
+    </div>
+
+  </div><!-- /tab-ringkasan -->
+
+  <!-- TAB 2: DETAIL JABATAN -->
+  <div id="tab-detail" class="tab-panel">
+
+    <!-- GRID KAD JABATAN -->
+    <div id="grid-jabatan" class="row g-3 mb-3"></div>
+
+    <!-- PANEL DETAIL (tersembunyi) -->
+    <div id="panel-detail">
+      <div class="detail-header">
+        <div>
+          <div style="font-size:0.85rem;opacity:0.8;margin-bottom:4px;">DETAIL KPI JABATAN</div>
+          <h2 id="detail-nama-jabatan">—</h2>
+          <span id="detail-badge-status" class="badge-status"></span>
+        </div>
+        <div class="text-end">
+          <div style="font-size:0.85rem;opacity:0.8;">Pencapaian Keseluruhan</div>
+          <div class="detail-pct" id="detail-pct-keseluruhan">—</div>
+          <button class="btn btn-sm btn-warning mt-2" onclick="tutupDetail()">
+            <i class="bi bi-arrow-left"></i> Kembali
+          </button>
+        </div>
+      </div>
+
+      <div class="row g-4">
+        <!-- Radar Chart -->
+        <div class="col-md-5">
+          <div class="section-card h-100">
+            <div class="section-title"><i class="bi bi-radar"></i> Profil KPI</div>
+            <canvas id="chartRadar"></canvas>
+          </div>
+        </div>
+        <!-- Progress Bars -->
+        <div class="col-md-7">
+          <div class="section-card h-100">
+            <div class="section-title"><i class="bi bi-list-check"></i> Sasaran vs Pencapaian</div>
+            <div id="detail-progress-container"></div>
+          </div>
+        </div>
+      </div>
+    </div><!-- /panel-detail -->
+
+  </div><!-- /tab-detail -->
+
+</main>
+
+<!-- ===== FOOTER ===== -->
+<footer id="app-footer">
+  Sistem Pemantauan KPI E-Learning &nbsp;|&nbsp; Politeknik Muadzam Shah &nbsp;|&nbsp;
+  Kemaskini: <span id="tarikh-kemaskini"></span>
+</footer>
+
+<script>
+// ============================================================
+// === DATA KPI — EDIT BAHAGIAN INI UNTUK KEMASKINI DATA ===
+// ============================================================
+
+const JABATAN = [
+  { kod: 'JMTK', nama: 'Jabatan Matematik & Teknologi Komputer' },
+  { kod: 'JRKV', nama: 'Jabatan Reka Bentuk & Komunikasi Visual' },
+  { kod: 'JKM',  nama: 'Jabatan Kejuruteraan Mekanikal' },
+  { kod: 'JP',   nama: 'Jabatan Perdagangan' },
+  { kod: 'JPH',  nama: 'Jabatan Pelancongan & Hospitaliti' },
+  { kod: 'JMSK', nama: 'Jabatan Muamalat, Sains & Kemanusiaan' },
+  { kod: 'JPA',  nama: 'Jabatan Pengajian Am' },
+];
+
+const KPI_ITEMS = [
+  { id: 'video',  nama: 'Video PdP AI',      ikon: '🎬', warna: '#3b82f6' },
+  { id: 'ebook',  nama: 'e-Book',            ikon: '📖', warna: '#10b981' },
+  { id: 'micro',  nama: 'Micro Credential',  ikon: '🏅', warna: '#f59e0b' },
+  { id: 'vr',     nama: 'VR',                ikon: '🥽', warna: '#8b5cf6' },
+  { id: 'webinar',nama: 'Webinar',           ikon: '🌐', warna: '#ef4444' },
+];
+
+// Format: DATA[tahun][kodJabatan][kpiId] = { sasaran, capai }
+const DATA = {
+  '2024': {
+    JMTK:  { video:{sasaran:8,  capai:5},  ebook:{sasaran:4, capai:3},  micro:{sasaran:2, capai:1},  vr:{sasaran:1, capai:0},  webinar:{sasaran:4, capai:3}  },
+    JRKV:  { video:{sasaran:8,  capai:7},  ebook:{sasaran:4, capai:4},  micro:{sasaran:2, capai:2},  vr:{sasaran:1, capai:1},  webinar:{sasaran:4, capai:3}  },
+    JKM:   { video:{sasaran:6,  capai:4},  ebook:{sasaran:3, capai:2},  micro:{sasaran:2, capai:1},  vr:{sasaran:1, capai:0},  webinar:{sasaran:3, capai:2}  },
+    JP:    { video:{sasaran:8,  capai:6},  ebook:{sasaran:4, capai:3},  micro:{sasaran:2, capai:2},  vr:{sasaran:1, capai:1},  webinar:{sasaran:4, capai:4}  },
+    JPH:   { video:{sasaran:6,  capai:3},  ebook:{sasaran:3, capai:2},  micro:{sasaran:1, capai:1},  vr:{sasaran:1, capai:0},  webinar:{sasaran:3, capai:2}  },
+    JMSK:  { video:{sasaran:8,  capai:7},  ebook:{sasaran:4, capai:4},  micro:{sasaran:2, capai:1},  vr:{sasaran:1, capai:1},  webinar:{sasaran:4, capai:4}  },
+    JPA:   { video:{sasaran:6,  capai:4},  ebook:{sasaran:3, capai:2},  micro:{sasaran:1, capai:1},  vr:{sasaran:1, capai:0},  webinar:{sasaran:3, capai:3}  },
+  },
+  '2025': {
+    JMTK:  { video:{sasaran:10, capai:8},  ebook:{sasaran:5, capai:4},  micro:{sasaran:3, capai:2},  vr:{sasaran:2, capai:1},  webinar:{sasaran:5, capai:4}  },
+    JRKV:  { video:{sasaran:10, capai:10}, ebook:{sasaran:5, capai:5},  micro:{sasaran:2, capai:2},  vr:{sasaran:1, capai:1},  webinar:{sasaran:5, capai:5}  },
+    JKM:   { video:{sasaran:8,  capai:5},  ebook:{sasaran:4, capai:2},  micro:{sasaran:3, capai:2},  vr:{sasaran:1, capai:0},  webinar:{sasaran:4, capai:3}  },
+    JP:    { video:{sasaran:10, capai:9},  ebook:{sasaran:5, capai:5},  micro:{sasaran:3, capai:3},  vr:{sasaran:2, capai:2},  webinar:{sasaran:5, capai:5}  },
+    JPH:   { video:{sasaran:8,  capai:4},  ebook:{sasaran:4, capai:2},  micro:{sasaran:2, capai:1},  vr:{sasaran:1, capai:0},  webinar:{sasaran:4, capai:2}  },
+    JMSK:  { video:{sasaran:10, capai:9},  ebook:{sasaran:5, capai:4},  micro:{sasaran:2, capai:2},  vr:{sasaran:1, capai:1},  webinar:{sasaran:5, capai:4}  },
+    JPA:   { video:{sasaran:8,  capai:5},  ebook:{sasaran:4, capai:3},  micro:{sasaran:2, capai:1},  vr:{sasaran:2, capai:1},  webinar:{sasaran:4, capai:3}  },
+  },
+  '2026': {
+    JMTK:  { video:{sasaran:12, capai:3},  ebook:{sasaran:6, capai:1},  micro:{sasaran:4, capai:1},  vr:{sasaran:3, capai:0},  webinar:{sasaran:6, capai:2}  },
+    JRKV:  { video:{sasaran:12, capai:4},  ebook:{sasaran:6, capai:2},  micro:{sasaran:3, capai:1},  vr:{sasaran:2, capai:0},  webinar:{sasaran:6, capai:3}  },
+    JKM:   { video:{sasaran:10, capai:2},  ebook:{sasaran:5, capai:1},  micro:{sasaran:3, capai:0},  vr:{sasaran:2, capai:0},  webinar:{sasaran:5, capai:1}  },
+    JP:    { video:{sasaran:12, capai:5},  ebook:{sasaran:6, capai:2},  micro:{sasaran:4, capai:1},  vr:{sasaran:3, capai:1},  webinar:{sasaran:6, capai:2}  },
+    JPH:   { video:{sasaran:10, capai:2},  ebook:{sasaran:5, capai:1},  micro:{sasaran:3, capai:0},  vr:{sasaran:2, capai:0},  webinar:{sasaran:5, capai:1}  },
+    JMSK:  { video:{sasaran:12, capai:4},  ebook:{sasaran:6, capai:2},  micro:{sasaran:3, capai:1},  vr:{sasaran:2, capai:0},  webinar:{sasaran:6, capai:3}  },
+    JPA:   { video:{sasaran:10, capai:2},  ebook:{sasaran:5, capai:1},  micro:{sasaran:3, capai:0},  vr:{sasaran:2, capai:0},  webinar:{sasaran:5, capai:2}  },
+  },
+};
+
+// ============================================================
+// === FUNGSI PEMBANTU ===
+// ============================================================
+
+function getPeratus(capai, sasaran) {
+  if (!sasaran) return 0;
+  return Math.round((capai / sasaran) * 100);
+}
+
+function getStatus(pct) {
+  if (pct >= 100) return 'capai';
+  if (pct >= 70)  return 'hampir';
+  return 'perlu';
+}
+
+function getLabelStatus(pct) {
+  if (pct >= 100) return 'Capai Sasaran';
+  if (pct >= 70)  return 'Hampir Capai';
+  return 'Perlu Perhatian';
+}
+
+function getWarna(pct) {
+  if (pct >= 100) return '#28a745';
+  if (pct >= 70)  return '#ffc107';
+  return '#dc3545';
+}
+
+function getPurataPct(tahun, kodJab) {
+  const d = DATA[tahun][kodJab];
+  const kids = KPI_ITEMS.map(k => k.id);
+  const total = kids.reduce((s, kid) => s + getPeratus(d[kid].capai, d[kid].sasaran), 0);
+  return Math.round(total / kids.length);
+}
+
+// ============================================================
+// === RENDER: TAB RINGKASAN ===
+// ============================================================
+
+let chartBarInstance = null;
+
+function renderRingkasan(tahun) {
+  renderKadKPI(tahun);
+  renderChartBar(tahun);
+  renderJadualRanking(tahun);
+}
+
+function renderKadKPI(tahun) {
+  const container = document.getElementById('kad-kpi-container');
+  container.innerHTML = '';
+
+  KPI_ITEMS.forEach(kpi => {
+    let totalCapai = 0, totalSasaran = 0;
+    JABATAN.forEach(j => {
+      const d = DATA[tahun][j.kod][kpi.id];
+      totalCapai   += d.capai;
+      totalSasaran += d.sasaran;
+    });
+    const pct = getPeratus(totalCapai, totalSasaran);
+    const status = getStatus(pct);
+    const warna = getWarna(pct);
+
+    container.innerHTML += `
+      <div class="col-6 col-md-4 col-lg">
+        <div class="kad-kpi">
+          <div class="kpi-ikon">${kpi.ikon}</div>
+          <div class="kpi-nama">${kpi.nama}</div>
+          <div class="kpi-angka">${totalCapai}<span style="font-size:1rem;color:#888;font-weight:400"> / ${totalSasaran}</span></div>
+          <div class="kpi-sasaran">daripada sasaran ${totalSasaran} item</div>
+          <div class="progress mb-2">
+            <div class="progress-bar" style="width:${Math.min(pct,100)}%;background:${warna}" role="progressbar"></div>
+          </div>
+          <span class="badge-status badge-${status}">${pct}% — ${getLabelStatus(pct)}</span>
+        </div>
+      </div>`;
+  });
+}
+
+function renderChartBar(tahun) {
+  if (chartBarInstance) { chartBarInstance.destroy(); chartBarInstance = null; }
+
+  const labels = JABATAN.map(j => j.kod);
+  const datasets = KPI_ITEMS.map(kpi => ({
+    label: kpi.ikon + ' ' + kpi.nama,
+    data: JABATAN.map(j => {
+      const d = DATA[tahun][j.kod][kpi.id];
+      return getPeratus(d.capai, d.sasaran);
+    }),
+    backgroundColor: kpi.warna + 'cc',
+    borderColor: kpi.warna,
+    borderWidth: 1,
+    borderRadius: 4,
+  }));
+
+  chartBarInstance = new Chart(document.getElementById('chartBar'), {
+    type: 'bar',
+    data: { labels, datasets },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { position: 'top', labels: { font: { size: 13 } } },
+        tooltip: {
+          callbacks: {
+            label: ctx => ` ${ctx.dataset.label}: ${ctx.raw}%`
+          }
+        }
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          max: 120,
+          ticks: {
+            callback: v => v + '%',
+            font: { size: 12 }
+          },
+          grid: { color: '#e9ecef' }
+        },
+        x: { ticks: { font: { size: 13, weight: 'bold' } } }
+      }
+    }
+  });
+}
+
+function renderJadualRanking(tahun) {
+  const tbody = document.getElementById('tbody-ranking');
+  tbody.innerHTML = '';
+
+  const rows = JABATAN.map(j => {
+    const kpiData = {};
+    KPI_ITEMS.forEach(k => {
+      const d = DATA[tahun][j.kod][k.id];
+      kpiData[k.id] = getPeratus(d.capai, d.sasaran);
+    });
+    const purata = getPurataPct(tahun, j.kod);
+    return { ...j, kpiData, purata };
+  }).sort((a, b) => b.purata - a.purata);
+
+  rows.forEach((r, i) => {
+    const rank = i + 1;
+    const rankClass = rank <= 3 ? `ranking-${rank}` : '';
+    const rankEmoji = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : rank;
+
+    let cells = KPI_ITEMS.map(k => {
+      const pct = r.kpiData[k.id];
+      const cls = `cell-${getStatus(pct)}`;
+      return `<td class="${cls}">${pct}%</td>`;
+    }).join('');
+
+    const purataCls = `cell-${getStatus(r.purata)}`;
+    tbody.innerHTML += `
+      <tr>
+        <td class="text-center"><span class="ranking-no ${rankClass}">${rankEmoji}</span></td>
+        <td><strong>${r.kod}</strong><br><small class="text-muted">${r.nama}</small></td>
+        ${cells}
+        <td class="${purataCls} text-center fs-6"><strong>${r.purata}%</strong></td>
+      </tr>`;
+  });
+}
+
+// ============================================================
+// === RENDER: TAB DETAIL JABATAN ===
+// ============================================================
+
+let chartRadarInstance = null;
+
+function renderGridJabatan(tahun) {
+  const grid = document.getElementById('grid-jabatan');
+  grid.innerHTML = '';
+
+  JABATAN.forEach(j => {
+    const pct = getPurataPct(tahun, j.kod);
+    const status = getStatus(pct);
+    const warna = getWarna(pct);
+
+    grid.innerHTML += `
+      <div class="col-6 col-md-4 col-lg-3">
+        <div class="kad-jabatan" onclick="bukaPaparanJabatan('${j.kod}')">
+          <div class="jab-kod">${j.kod}</div>
+          <div class="jab-nama">${j.nama}</div>
+          <div class="jab-pct" style="color:${warna}">${pct}%</div>
+          <div class="mt-2">
+            <div class="progress">
+              <div class="progress-bar" style="width:${Math.min(pct,100)}%;background:${warna}"></div>
+            </div>
+          </div>
+          <div class="mt-2">
+            <span class="badge-status badge-${status}">${getLabelStatus(pct)}</span>
+          </div>
+        </div>
+      </div>`;
+  });
+}
+
+function bukaPaparanJabatan(kodJab) {
+  const tahun = document.getElementById('tahunSelect').value;
+  const jab = JABATAN.find(j => j.kod === kodJab);
+  const pct = getPurataPct(tahun, kodJab);
+  const status = getStatus(pct);
+
+  document.getElementById('grid-jabatan').style.display = 'none';
+  document.getElementById('panel-detail').style.display = 'block';
+  document.getElementById('detail-nama-jabatan').textContent = `${kodJab} — ${jab.nama}`;
+  document.getElementById('detail-pct-keseluruhan').textContent = pct + '%';
+
+  const badge = document.getElementById('detail-badge-status');
+  badge.textContent = getLabelStatus(pct);
+  badge.className = `badge-status badge-${status}`;
+
+  // Radar chart
+  if (chartRadarInstance) { chartRadarInstance.destroy(); chartRadarInstance = null; }
+  const radarData = KPI_ITEMS.map(k => {
+    const d = DATA[tahun][kodJab][k.id];
+    return getPeratus(d.capai, d.sasaran);
+  });
+
+  chartRadarInstance = new Chart(document.getElementById('chartRadar'), {
+    type: 'radar',
+    data: {
+      labels: KPI_ITEMS.map(k => k.ikon + ' ' + k.nama),
+      datasets: [{
+        label: kodJab,
+        data: radarData,
+        backgroundColor: 'rgba(0,51,102,0.15)',
+        borderColor: '#003366',
+        pointBackgroundColor: radarData.map(v => getWarna(v)),
+        pointRadius: 6,
+        borderWidth: 2,
+      }]
+    },
+    options: {
+      responsive: true,
+      scales: {
+        r: {
+          beginAtZero: true,
+          max: 120,
+          ticks: { stepSize: 20, callback: v => v + '%', font: { size: 11 } },
+          grid: { color: '#ddd' },
+          pointLabels: { font: { size: 12, weight: 'bold' } }
+        }
+      },
+      plugins: { legend: { display: false } }
+    }
+  });
+
+  // Progress bars
+  const container = document.getElementById('detail-progress-container');
+  container.innerHTML = '';
+  KPI_ITEMS.forEach(k => {
+    const d = DATA[tahun][kodJab][k.id];
+    const pct = getPeratus(d.capai, d.sasaran);
+    const warna = getWarna(pct);
+    container.innerHTML += `
+      <div class="progress-wrap">
+        <div class="progress-label">
+          <span>${k.ikon} ${k.nama}</span>
+          <span style="color:${warna}">${d.capai} / ${d.sasaran} &nbsp; <strong>${pct}%</strong></span>
+        </div>
+        <div class="progress">
+          <div class="progress-bar" style="width:${Math.min(pct,100)}%;background:${warna}" role="progressbar"></div>
+        </div>
+      </div>`;
+  });
+}
+
+function tutupDetail() {
+  document.getElementById('panel-detail').style.display = 'none';
+  document.getElementById('grid-jabatan').style.display = 'flex';
+  document.getElementById('grid-jabatan').style.flexWrap = 'wrap';
+  if (chartRadarInstance) { chartRadarInstance.destroy(); chartRadarInstance = null; }
+}
+
+// ============================================================
+// === INTERAKTIVITI ===
+// ============================================================
+
+function tukarTab(tab) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('aktif'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('aktif'));
+  document.getElementById('tab-' + tab).classList.add('aktif');
+  event.currentTarget.classList.add('aktif');
+
+  if (tab === 'detail') {
+    document.getElementById('panel-detail').style.display = 'none';
+    document.getElementById('grid-jabatan').style.display = '';
+  }
+}
+
+function renderSemua(tahun) {
+  renderRingkasan(tahun);
+  renderGridJabatan(tahun);
+  // Tutup panel detail jika terbuka
+  document.getElementById('panel-detail').style.display = 'none';
+  document.getElementById('grid-jabatan').style.display = '';
+}
+
+function toggleFullscreen() {
+  if (!document.fullscreenElement) {
+    document.documentElement.requestFullscreen();
+  } else {
+    document.exitFullscreen();
+  }
+}
+
+// ============================================================
+// === INIT ===
+// ============================================================
+
+document.addEventListener('DOMContentLoaded', () => {
+  const tarikhEl = document.getElementById('tarikh-kemaskini');
+  tarikhEl.textContent = new Date().toLocaleDateString('ms-MY', {
+    day: '2-digit', month: 'long', year: 'numeric'
+  });
+  renderSemua('2025');
+});
+</script>
+
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
